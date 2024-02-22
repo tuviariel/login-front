@@ -9,10 +9,12 @@ export const Welcome = () => {
     const [email, setEmail] = useState("");
     const [OTPCode, setOTPCode] = useState("");
     const [message, setMessage] = useState("");
+    const [pending, setPending] = useState(false);
 
     //sending user's email address to back-end:
     const sendLogin = async () => {
         if (validateEmail(email)) {
+            setPending(true);
             try {
                 const res = await axios.post(`${API_URL}/login`, {
                     email: email,
@@ -26,6 +28,8 @@ export const Welcome = () => {
             } catch (err) {
                 console.log(err);
                 setMessage("There was an error. Please try again.");
+            } finally {
+                setPending(false);
             }
         } else {
             setMessage(email + " is not a valid email address.");
@@ -34,16 +38,26 @@ export const Welcome = () => {
 
     //sending the OTPCode user entered:
     const sendCode = async () => {
-        const res = await axios.post(`${API_URL}/login/code`, {
-            email: email,
-            code: OTPCode,
-        });
-        console.log(res);
-        if (res.status === 200 && res.data.action === "next") {
-            navigate("/main");
-        } else if (res.data.action === "back") {
-            setMessage(res.data.message);
-            setEmailSent(false);
+        setPending(true);
+        try {
+            const res = await axios.post(`${API_URL}/login/code`, {
+                email: email,
+                code: OTPCode,
+            });
+            console.log(res);
+            if (res.status === 200 && res.data.action === "next") {
+                navigate("/main");
+            } else if (res.data.action === "back") {
+                setPending(false);
+                setMessage(res.data.message);
+                setEmailSent(false);
+            } else if (res.data.action === "stay") {
+                setPending(false);
+                setMessage(res.data.message);
+            }
+        } catch (err) {
+            console.log(err);
+            setMessage("There was an error. Please try again.");
         }
     };
 
@@ -88,12 +102,15 @@ export const Welcome = () => {
             <div className="">
                 <button
                     className=""
-                    disabled={emailSent ? OTPCode.length !== 6 : !validateEmail(email)}
+                    disabled={
+                        pending ? true : emailSent ? OTPCode.length !== 6 : !validateEmail(email)
+                    }
                     onClick={() => {
                         emailSent ? sendCode() : sendLogin();
                     }}>
                     {emailSent ? "Confirm Code From Email" : "Send Email Address"}
                 </button>
+                <div className="">{pending && "Loading..."}</div>
             </div>
         </div>
     );
