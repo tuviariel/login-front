@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import config from "../../config";
 import { useNavigate } from "react-router";
@@ -10,13 +10,13 @@ export const Welcome = () => {
     const [OTPCode, setOTPCode] = useState("");
     const [message, setMessage] = useState("");
 
+    //sending user's email address to back-end:
     const sendLogin = async () => {
         if (validateEmail(email)) {
             try {
                 const res = await axios.post(`${API_URL}/login`, {
                     email: email,
                 });
-                console.log(res);
                 if (res.status === 200) {
                     setEmailSent(true);
                     setMessage(res.data.message);
@@ -32,6 +32,7 @@ export const Welcome = () => {
         }
     };
 
+    //sending the OTPCode user entered:
     const sendCode = async () => {
         const res = await axios.post(`${API_URL}/login/code`, {
             email: email,
@@ -46,8 +47,8 @@ export const Welcome = () => {
         }
     };
 
+    //validating email address format:
     const validateEmail = (email) => {
-        console.log("val");
         const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
         return regex.test(email);
     };
@@ -59,7 +60,7 @@ export const Welcome = () => {
             <div>{message}</div>
             {emailSent ? (
                 <div className="">
-                    Enter code you got from the email that was sent to you:
+                    Enter code from email you got:
                     <input
                         className=""
                         type="text"
@@ -67,12 +68,12 @@ export const Welcome = () => {
                             setOTPCode(e.target.value);
                         }}
                         value={OTPCode}
-                        placeholder="OTPCode"
+                        placeholder="X X X X X X"
                     />
                 </div>
             ) : (
                 <div className="">
-                    Enter email to log in:
+                    Enter your email to log in:
                     <input
                         className=""
                         type="text"
@@ -80,7 +81,7 @@ export const Welcome = () => {
                             setEmail(e.target.value);
                         }}
                         value={email}
-                        placeholder="Enter your email..."
+                        placeholder="example@company.com"
                     />
                 </div>
             )}
@@ -91,7 +92,7 @@ export const Welcome = () => {
                     onClick={() => {
                         emailSent ? sendCode() : sendLogin();
                     }}>
-                    {emailSent ? "Confirm Code From Email Received" : "Send Email Address"}
+                    {emailSent ? "Confirm Code From Email" : "Send Email Address"}
                 </button>
             </div>
         </div>
